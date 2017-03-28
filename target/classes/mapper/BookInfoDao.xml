@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.library.dao.BookInfoDao">
+
+    <!--图书排行榜-->
+    <select id="bookRank" resultType="org.library.entity.BookInfo">
+        SELECT
+        b.id,
+        b.barcode,
+        b.author,
+        b.bookname,
+        b.del,
+        b.price,
+        bt.typename "bookType.typename",
+        p.pubname "publishing.pubname",
+        bc.name "bookcase.name"
+        FROM library.tb_bookinfo b
+        JOIN library.tb_booktype bt
+        ON b.typeid = bt.id
+        JOIN library.tb_publishing p
+        ON b.ISBN = p.ISBN
+        JOIN library.tb_bookcase bc
+        ON b.bookcase_id = bc.id
+        ORDER BY b.del DESC
+    </select>
+
+    <!--图书管理-->
+    <select id="books" resultType="org.library.entity.BookInfo">
+        SELECT
+        b.*,
+        bt.typename "bookType.typename",
+        p.pubname "publishing.pubname",
+        bc.name "bookcase.name"
+        FROM library.tb_bookinfo b
+        JOIN library.tb_booktype bt
+        ON b.typeid = bt.id
+        JOIN library.tb_publishing p
+        ON b.ISBN = p.ISBN
+        JOIN library.tb_bookcase bc
+        ON b.bookcase_id = bc.id
+    </select>
+    <delete id="delBook" parameterType="java.lang.Integer">
+        DELETE FROM library.tb_bookinfo
+        WHERE id = #{id}
+    </delete>
+    <insert id="addBook" parameterType="org.library.entity.BookInfo">
+        INSERT INTO library.tb_bookinfo
+        (barcode, bookname, typeid, author,
+         translator, ISBN, price, page,
+         inTime, operator, bookcase_id) VALUES
+        (#{barcode},#{bookname},#{typeid},#{author},
+         #{translator},#{ISBN},#{price},#{page},
+         #{inTime},#{operator},#{bookcaseId})
+    </insert>
+    <update id="setBook" parameterType="org.library.entity.BookInfo">
+        UPDATE library.tb_bookinfo SET
+        barcode = #{barcode},
+        bookname = #{bookname},
+        typeid = #{typeid},
+        author = #{author},
+        translator = #{translator},
+        ISBN = #{ISBN},
+        price = #{price},
+        page = #{page},
+        bookcase_id = #{bookcaseId}
+        WHERE id = #{id}
+    </update>
+
+    <!--书架管理-->
+    <select id="cases" resultType="org.library.entity.Bookcase">
+        SELECT id,name,Column_3
+        FROM library.tb_bookcase
+    </select>
+    <update id="caseModify" parameterType="org.library.entity.Bookcase">
+        UPDATE library.tb_bookcase
+        SET name = #{name}
+        WHERE id = #{id}
+    </update>
+    <!--当书架有书时不能删除，连表删-->
+    <delete id="caseDel" parameterType="java.lang.Integer">
+        DELETE FROM tb_bookcase
+        WHERE id = #{id}
+        AND id NOT IN (SELECT bookcase_id FROM tb_bookinfo)
+    </delete>
+    <insert id="addCase" parameterType="org.library.entity.Bookcase">
+        INSERT INTO library.tb_bookcase
+        (name) VALUES (#{name})
+    </insert>
+
+    <!--辅助查询 书架 出版社 类型-->
+    <select id="bookType" resultType="org.library.entity.BookType">
+        SELECT * FROM library.tb_booktype
+    </select>
+
+    <select id="publishing" resultType="org.library.entity.Publishing">
+        SELECT * FROM library.tb_publishing
+    </select>
+
+    <insert id="addBookType" parameterType="org.library.entity.BookType">
+        INSERT INTO library.tb_booktype
+        (typename, days) VALUES
+        (#{typename},#{days})
+    </insert>
+
+    <update id="setBookType" parameterType="org.library.entity.BookType">
+        UPDATE library.tb_booktype SET
+        typename = #{typename},
+        days = #{days}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delBookType" parameterType="java.lang.Integer">
+        DELETE FROM library.tb_booktype
+        WHERE id = #{id}
+    </delete>
+
+
+</mapper>

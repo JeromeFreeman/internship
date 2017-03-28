@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.library.dao.ManagerDao">
+
+    <!--登录查询-->
+    <select id="login" resultType="org.library.entity.Manager" parameterType="org.library.entity.Manager">
+        SELECT m.id,m.name,m.PWD,
+        p.bookset "purview.bookset",
+        p.borrowback "purview.borrowback",
+        p.readerset "purview.readerset",
+        p.sysquery "purview.sysquery",
+        p.sysset "purview.sysset"
+        FROM library.tb_manager m JOIN tb_purview p ON m.id=p.id
+        WHERE name = #{name}
+        AND PWD = #{PWD}
+    </select>
+
+    <!--权限查询-->
+    <select id="manage" resultType="org.library.entity.Purview">
+        SELECT
+        p.id,
+        p.bookset,
+        p.borrowback,
+        p.readerset,
+        p.sysquery,
+        p.sysset,
+        m.name "manager.name"
+        FROM library.tb_purview p
+        JOIN library.tb_manager m
+        ON p.id = m.id
+    </select>
+
+    <!--连表、删除管理员-->
+    <delete id="delete" parameterType="java.lang.Integer">
+        DELETE library.tb_manager, library.tb_purview
+        FROM library.tb_manager
+        LEFT JOIN library.tb_purview
+        ON library.tb_manager.id = library.tb_purview.id
+        WHERE library.tb_manager.id = #{id}
+    </delete>
+
+    <!--增加管理员-->
+    <insert id="addManager" parameterType="org.library.entity.Manager">
+        INSERT INTO library.tb_manager
+        (name, PWD) VALUES (#{name},#{PWD})
+    </insert>
+    <!--为新增管理员插入权限，数据库默认为0-->
+    <insert id="addPurview" parameterType="java.lang.Integer">
+        INSERT INTO library.tb_purview
+        (id) VALUES (#{id})
+    </insert>
+
+    <!--设置权限setPurview-->
+    <update id="setPurview" parameterType="org.library.entity.Purview">
+        UPDATE library.tb_purview
+        SET bookset = #{bookset},borrowback = #{borrowback},
+        readerset = #{readerset},sysquery = #{sysquery},sysset = #{sysset}
+        WHERE id = #{id}
+    </update>
+
+</mapper>

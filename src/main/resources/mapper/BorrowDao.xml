@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.library.dao.BorrowDao">
+    
+    <!--查询该读者到期前三天的图书信息-->
+    <select id="renewBook" resultType="org.library.entity.Borrow">
+        SELECT
+        bw.id,bw.readerid,bw.bookid,bw.borrowTime,bw.backTime,bw.ifback,
+        bk.price 'bookInfo.price',
+        bk.bookname 'bookInfo.bookname',
+        bc.name 'bookInfo.bookcase.name',
+        p.pubname 'bookInfo.publishing.pubname'
+        FROM `tb_borrow` bw JOIN tb_bookinfo bk on bw.bookid=bk.id
+        JOIN tb_bookcase bc on bk.bookcase_id = bc.id
+        JOIN tb_publishing p on bk.ISBN = p.ISBN
+        <where>
+            bw.readerid = #{readerid} and bw.ifback=0
+            <if test="threeDayAgo!=null">
+                and backTime BETWEEN NOW() AND #{threeDayAgo}
+            </if>
+        </where>
+    </select>
+
+    <select id="borrowReader" resultType="org.library.entity.Reader">
+        SELECT
+        r.*,
+        rt.number "readerType.number",
+        rt.name "readerType.name"
+        FROM library.tb_reader r
+        JOIN library.tb_readertype rt
+        ON r.typeid = rt.id
+        WHERE r.barcode = #{barcode}
+    </select>
+    <select id="borrowNumber" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        SELECT count(readerid)
+        FROM library.tb_borrow
+        WHERE readerid = #{id}
+        AND ifback = 0
+    </select>
+
+    <select id="barcodeBook" resultType="org.library.entity.BookInfo" parameterType="java.lang.String">
+        SELECT
+        b.*,
+        bt.typename "bookType.typename",
+        p.pubname "publishing.pubname",
+        bc.name "bookcase.name"
+        FROM library.tb_bookinfo b
+        JOIN library.tb_booktype bt
+        ON b.typeid = bt.id
+        JOIN library.tb_publishing p
+        ON b.ISBN = p.ISBN
+        JOIN library.tb_bookcase bc
+        ON b.bookcase_id = bc.id
+        WHERE b.barcode = #{barcode}
+    </select>
+
+    <select id="nameBook" resultType="org.library.entity.BookInfo" parameterType="java.lang.String">
+        SELECT
+        b.*,
+        bt.typename "bookType.typename",
+        p.pubname "publishing.pubname",
+        bc.name "bookcase.name"
+        FROM library.tb_bookinfo b
+        JOIN library.tb_booktype bt
+        ON b.typeid = bt.id
+        JOIN library.tb_publishing p
+        ON b.ISBN = p.ISBN
+        JOIN library.tb_bookcase bc
+        ON b.bookcase_id = bc.id
+        WHERE b.bookname = #{bookname}
+    </select>
+
+    <insert id="completeBorrow" parameterType="org.library.entity.Borrow">
+        INSERT INTO library.tb_borrow
+        (readerid, bookid, borrowTime, backTime, operator) VALUES
+        (#{readerid},#{bookid},#{borrowTime},#{backTime},#{operator})
+    </insert>
+
+    <update id="completeReBack" >
+        UPDATE library.tb_borrow SET
+        backTime = NOW(),
+        ifback = 1
+        WHERE id IN
+        <foreach collection="list" item="borrowId" index="index" open="(" close=")" separator=",">
+            #{borrowId}
+        </foreach>
+    </update>
+
+    <update id="updateRenew">
+        UPDATE library.tb_borrow SET
+        backTime = NOW(),
+        ifback = 1
+        WHERE id IN
+        <foreach collection="list" item="borrowId" index="index" open="(" close=")" separator=",">
+            #{borrowId}
+        </foreach>
+    </update>
+
+    <select id="backRenew"  resultType="org.library.entity.Borrow">
+        SELECT * FROM library.tb_borrow
+        WHERE id IN
+        <foreach collection="list" item="borrowId" index="index" open="(" close=")" separator=",">
+            #{borrowId}
+        </foreach>
+    </select>
+
+</mapper>

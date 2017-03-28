@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.library.dao.QueryDao">
+    
+   <select id="queryOut" resultType="org.library.entity.Borrow">
+       SELECT
+       bw.id,
+       bw.borrowTime,
+       bw.backTime,
+       bw.ifback,
+       bk.barcode "bookInfo.barcode",
+       bk.bookname "bookInfo.bookname",
+       r.barcode "reader.barcode",
+       r.name "reader.name"
+       FROM tb_borrow bw
+       JOIN tb_bookinfo bk ON  bw.bookid=bk.id
+       JOIN tb_reader r on bw.readerid=r.id
+       WHERE bw.ifback=0 and bw.backTime <![CDATA[<]]> NOW()
+   </select>
+
+    <select id="queryBorrow" resultType="org.library.entity.Borrow" parameterType="org.library.entity.Borrow">
+        SELECT
+        bw.id,
+        bw.borrowTime,
+        bw.backTime,
+        bw.ifback,
+        bk.barcode "bookInfo.barcode",
+        bk.bookname "bookInfo.bookname",
+        r.barcode "reader.barcode",
+        r.name "reader.name"
+        FROM tb_borrow bw
+        JOIN tb_bookinfo bk ON  bw.bookid=bk.id
+        JOIN tb_reader r on bw.readerid=r.id
+        <where>
+            <if test="bookInfo!=null
+                and bookInfo.barcode!=null">
+                AND bk.barcode = #{bookInfo.barcode}
+            </if>
+            <if test="bookInfo!=null
+                and bookInfo.bookname!=null">
+                AND bk.bookname = #{bookInfo.bookname}
+            </if>
+            <if test="reader!=null
+                and reader.barcode!=null">
+                AND r.barcode = #{reader.barcode}
+            </if>
+            <if test="reader!=null
+                and reader.name!=null">
+                AND r.name = #{reader.name}
+            </if>
+            <if test="borrowTime!=null and backTime!=null">
+                AND bw.borrowTime BETWEEN #{borrowTime} AND #{backTime}
+            </if>
+        </where>
+    </select>
+
+<!--1==条形码，2==类别，3==书名，4==作者，5==出版社，6==书架-->
+    <select id="queryBook" resultType="org.library.entity.BookInfo" parameterType="org.library.entity.BookInfo">
+        SELECT
+        b.barcode,
+        b.bookname,
+        bt.typename "bookType.typename",
+        p.pubname "publishing.pubname",
+        bc.name "bookcase.name"
+        FROM library.tb_bookinfo b
+        JOIN library.tb_booktype bt
+        ON b.typeid = bt.id
+        JOIN library.tb_publishing p
+        ON b.ISBN = p.ISBN
+        JOIN library.tb_bookcase bc
+        ON b.bookcase_id = bc.id
+        <where>
+            <if test="barcode!=null">
+                AND b.barcode = #{barcode}
+            </if>
+            <if test="bookname!=null">
+                AND b.bookname = #{bookname}
+            </if>
+            <if test="author!=null">
+                AND b.author = #{author}
+            </if>
+            <if test="bookType!=null and bookType.typename!=null">
+                AND bt.typename = #{bookType.typename}
+            </if>
+            <if test="publishing!=null and publishing.pubname">
+                AND p.pubname = #{publishing.pubname}
+            </if>
+            <if test="bookcase!=null and bookcase.name!=null">
+                AND bc.name = #{bookcase.name}
+            </if>
+        </where>
+    </select>
+
+</mapper>

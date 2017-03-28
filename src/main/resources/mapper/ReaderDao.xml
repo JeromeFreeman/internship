@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.library.dao.ReaderDao">
+
+    <!--读者-->
+    <!--可供选择的身份证件-->
+    <select id="paperTypes" resultType="org.library.entity.Reader">
+        SELECT paperType FROM library.tb_reader GROUP BY paperType
+    </select>
+    <!--可供选择的读者身份类型-->
+    <select id="readerTypes" resultType="org.library.entity.ReaderType">
+        SELECT * FROM library.tb_readertype
+    </select>
+    <select id="readers" resultType="org.library.entity.Reader">
+        SELECT
+        r.*,
+        rt.number "readerType.number",
+        rt.name "readerType.name"
+        FROM library.tb_reader r
+        JOIN library.tb_readertype rt
+        ON r.typeid = rt.id
+    </select>
+    <update id="updateReader" parameterType="org.library.entity.Reader">
+        UPDATE library.tb_reader SET
+        name = #{name},
+        sex = #{sex},
+        barcode = #{barcode},
+        vocation = #{vocation},
+        birthday = #{birthday},
+        typeid = #{typeid},
+        paperType = #{paperType},
+        paperNo = #{paperNo},
+        tel = #{tel},
+        email = #{email},
+        remark = #{remark}
+        WHERE id = #{id}
+    </update>
+    <delete id="delReader" parameterType="java.lang.Integer">
+        DELETE FROM library.tb_reader
+        WHERE id = #{id}
+    </delete>
+    <insert id="addReader" parameterType="org.library.entity.Reader">
+        INSERT INTO library.tb_reader
+        (name, sex, barcode, vocation,
+        birthday, paperType, paperNo, tel,
+        email, createDate, operator, remark, typeid)
+        VALUES
+        (#{name},#{sex},#{barcode},#{vocation},
+        #{birthday},#{paperType},#{paperNo},#{tel},
+        #{email},#{createDate},#{operator},#{remark},#{typeid})
+    </insert>
+
+    <!--读者类型增删改-->
+    <insert id="addReaderType" parameterType="org.library.entity.ReaderType">
+        INSERT INTO library.tb_readertype
+        (name, number) VALUES
+        (#{name},#{number})
+    </insert>
+    <update id="setReaderType" parameterType="org.library.entity.ReaderType">
+        UPDATE library.tb_readertype SET
+        name = #{name},
+        number = #{number}
+        WHERE id = #{id}
+    </update>
+    <delete id="delReaderType" parameterType="java.lang.Integer">
+        DELETE FROM library.tb_readertype
+        WHERE id = #{id}
+    </delete>
+
+</mapper>
